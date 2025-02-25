@@ -25,17 +25,17 @@ const App = () => {
   const costUnitLabel = costType === "電気代" ? "円/kWh" : "円/kg";
 
   // ✅ リアルタイムデータを定期取得（常に表示）
-  useEffect(() => {
-    const fetchRealTimeData = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/api/realtime`);
-        console.log("サーバーからのレスポンス:", response.data);
-        setRealTimeData(response.data);
-      } catch (error) {
-        console.error("エラー:", error);
-      }
-    };
+  const fetchRealTimeData = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/realtime`);
+      console.log("サーバーからのレスポンス:", response.data);
+      setRealTimeData(response.data);
+    } catch (error) {
+      console.error("エラー:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchRealTimeData();
     const interval = setInterval(fetchRealTimeData, 5000); // 5秒ごとに更新
     return () => clearInterval(interval);
@@ -43,6 +43,7 @@ const App = () => {
 
   // ✅ 計算リクエストを送信 (最新のリアルタイムデータを使用)
   const fetchCalculation = async () => {
+    await fetchRealTimeData(); // 最新の温度データを取得
     if (!realTimeData) {
       setError("リアルタイムデータが取得できていません");
       return;
@@ -113,6 +114,26 @@ const App = () => {
             type="number"
             value={costUnit}
             onChange={(e) => setCostUnit(Number(e.target.value) || 0)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
+          <input
+            type="number"
+            value={operatingHours}
+            onChange={(e) => setOperatingHours(Number(e.target.value) || 0)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
+          <input
+            type="number"
+            value={operatingDays}
+            onChange={(e) => setOperatingDays(Number(e.target.value) || 0)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
