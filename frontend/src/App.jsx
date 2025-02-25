@@ -83,60 +83,50 @@ const App = () => {
 
       {/* 入力フォーム (5つ) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
-        <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">流量 (L/min)</label>
-          <input
-            type="number"
-            value={flow1}
-            onChange={(e) => setFlow1(Number(e.target.value) || 0)}
-            className="border border-gray-400 p-2 rounded w-full text-center"
-          />
-        </div>
+{/* ✅ Flow1 入力 */}
+<div className="flex flex-col items-center w-40">
+  <label className="mb-2 font-semibold">Flow1 (L/min)</label>
+  <input
+    type="number"
+    value={flow1 === 0 ? "" : flow1}
+    onChange={(e) => setFlow1(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+    className="border border-gray-400 p-2 rounded w-full text-center"
+  />
+</div>
 
-        <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">コスト種類</label>
-          <select
-            value={costType}
-            onChange={(e) => setCostType(e.target.value)}
-            className="border border-gray-400 p-2 rounded w-full text-center"
-          >
-            <option value="電気代">電気代</option>
-            <option value="プロパンガス">プロパンガス</option>
-            <option value="灯油代">灯油代</option>
-            <option value="重油代">重油代</option>
-            <option value="ガス(13A)代">ガス(13A)代</option>
-          </select>
-        </div>
+{/* ✅ コスト単価入力 */}
+<div className="flex flex-col items-center w-40">
+  <label className="mb-2 font-semibold">コスト単価 ({costUnitLabel})</label>
+  <input
+    type="number"
+    value={costUnit === 0 ? "" : costUnit}
+    onChange={(e) => setCostUnit(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+    className="border border-gray-400 p-2 rounded w-full text-center"
+  />
+</div>
 
-        <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">コスト単価 ({costUnitLabel})</label>
-          <input
-            type="number"
-            value={costUnit}
-            onChange={(e) => setCostUnit(Number(e.target.value) || 0)}
-            className="border border-gray-400 p-2 rounded w-full text-center"
-          />
-        </div>
+{/* ✅ 稼働時間入力 */}
+<div className="flex flex-col items-center w-40">
+  <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
+  <input
+    type="number"
+    value={operatingHours === 0 ? "" : operatingHours}
+    onChange={(e) => setOperatingHours(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+    className="border border-gray-400 p-2 rounded w-full text-center"
+  />
+</div>
 
-        <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
-          <input
-            type="number"
-            value={operatingHours}
-            onChange={(e) => setOperatingHours(Number(e.target.value) || 0)}
-            className="border border-gray-400 p-2 rounded w-full text-center"
-          />
-        </div>
+{/* ✅ 稼働日数入力 */}
+<div className="flex flex-col items-center w-40">
+  <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
+  <input
+    type="number"
+    value={operatingDays === 0 ? "" : operatingDays}
+    onChange={(e) => setOperatingDays(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+    className="border border-gray-400 p-2 rounded w-full text-center"
+  />
+</div>
 
-        <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
-          <input
-            type="number"
-            value={operatingDays}
-            onChange={(e) => setOperatingDays(Number(e.target.value) || 0)}
-            className="border border-gray-400 p-2 rounded w-full text-center"
-          />
-        </div>
 
         <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
