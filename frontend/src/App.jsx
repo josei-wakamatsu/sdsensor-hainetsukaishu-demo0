@@ -20,6 +20,9 @@ const App = () => {
     tempC4: "排水2",
   };
 
+  // ✅ コスト単価の単位を選択したコストの名前の横に表示
+  const costUnitLabel = costType === "電気代" ? "円/kWh" : "円/kg";
+
   // ✅ リアルタイムデータを定期取得（常に表示）
   useEffect(() => {
     const fetchRealTimeData = async () => {
@@ -70,13 +73,12 @@ const App = () => {
             </div>
           ))
         ) : (
-          <p className="text-center w-full">データなし</p>
+          <p className="text-center w-full"></p>
         )}
       </div>
 
       {/* ✅ 入力フォーム (横1列に並べる) */}
-      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-row items-center w-full max-w-6xl mb-6 space-x-4">
-        {/* Flow1 入力 */}
+      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">Flow1 (L/min)</label>
           <input
@@ -87,7 +89,6 @@ const App = () => {
           />
         </div>
 
-        {/* コスト種類選択 */}
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">コスト種類</label>
           <select
@@ -103,9 +104,8 @@ const App = () => {
           </select>
         </div>
 
-        {/* コスト単価入力 */}
         <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">コスト単価 (円/kWh or 円/kg)</label>
+          <label className="mb-2 font-semibold">コスト単価 ({costUnitLabel})</label>
           <input
             type="number"
             value={costUnit}
@@ -114,7 +114,6 @@ const App = () => {
           />
         </div>
 
-        {/* 稼働時間入力 */}
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
           <input
@@ -125,7 +124,6 @@ const App = () => {
           />
         </div>
 
-        {/* 稼働日数入力 */}
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
           <input
@@ -136,28 +134,20 @@ const App = () => {
           />
         </div>
 
-        {/* 計算ボタン */}
         <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
         </button>
       </div>
 
-      {/* ✅ 計算結果の表示 */}
-      {realTimeData?.currentCost ? (
+      {/* ✅ 計算結果の表示（4つ） */}
+      {realTimeData?.currentCost !== undefined ? (
         <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">現状コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.currentCost || 0} 円/h</p>
-          </div>
-
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyCost || 0} 円/年</p>
+            <h2 className="text-lg font-semibold">現状コスト</h2>
+            <p className="text-xl font-bold">{realTimeData.currentCost} 円/h</p>
           </div>
         </div>
-      ) : (
-        <p className="text-center text-red-500 mt-4">{error || "データなし (null)"}</p>
-      )}
+      ) : null}
     </div>
   );
 };
