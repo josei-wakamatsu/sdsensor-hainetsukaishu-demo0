@@ -70,111 +70,80 @@ const App = () => {
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
       <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
 
-{/* ✅ リアルタイム温度データ (背景色追加) */}
-<div className="grid grid-cols-4 gap-6 w-full max-w-6xl mb-6">
-  {realTimeData?.temperature &&
-    Object.entries(realTimeData.temperature).map(([key, value]) => {
-      // 給水は青、排水はオレンジ
-      const bgColor = key === "tempC1" || key === "tempC2" ? "bg-blue-200" : "bg-orange-200";
-      
-      return (
-        <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
-          <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
-            {temperatureLabels[key]}
-          </h2>
-          <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
+      {/* ✅ リアルタイム温度データ (背景色追加) */}
+      <div className="grid grid-cols-4 gap-6 w-full max-w-6xl mb-6">
+        {realTimeData?.temperature &&
+          Object.entries(realTimeData.temperature).map(([key, value]) => {
+            const bgColor = key === "tempC1" || key === "tempC2" ? "bg-blue-200" : "bg-orange-200";
+            return (
+              <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
+                <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
+                  {temperatureLabels[key]}
+                </h2>
+                <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
+              </div>
+            );
+          })}
+      </div>
+
+      {/* ✅ 入力フォーム (5つ) */}
+      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">Flow1 (L/min)</label>
+          <input
+            type="number"
+            value={flow1 || ""}
+            onChange={(e) => setFlow1(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
         </div>
-      );
-    })}
-</div>
 
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">コスト種類</label>
+          <select
+            value={costType}
+            onChange={(e) => setCostType(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          >
+            <option value="電気代">電気代</option>
+            <option value="プロパンガス">プロパンガス</option>
+            <option value="灯油代">灯油代</option>
+            <option value="重油代">重油代</option>
+            <option value="ガス(13A)代">ガス(13A)代</option>
+          </select>
+        </div>
 
-{/* ✅ 入力フォーム (5つ) */}
-<div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
-  {/* ✅ Flow1 入力 */}
-  <div className="flex flex-col items-center w-40">
-    <label className="mb-2 font-semibold">Flow1 (L/min)</label>
-    <input
-      type="number"
-      value={flow1 === 0 ? "" : flow1}
-      onChange={(e) => setFlow1(e.target.value === "" ? 0 : parseFloat(e.target.value))}
-      className="border border-gray-400 p-2 rounded w-full text-center"
-    />
-  </div>
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">コスト単価 ({costUnitLabel})</label>
+          <input
+            type="number"
+            value={costUnit || ""}
+            onChange={(e) => setCostUnit(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
 
-  {/* ✅ コスト種類入力（追加） */}
-  <div className="flex flex-col items-center w-40">
-    <label className="mb-2 font-semibold">コスト種類</label>
-    <select
-      value={costType}
-      onChange={(e) => setCostType(e.target.value)}
-      className="border border-gray-400 p-2 rounded w-full text-center"
-    >
-      <option value="電気">電気</option>
-      <option value="プロパンガス">プロパンガス</option>
-      <option value="灯油">灯油</option>
-      <option value="重油">重油</option>
-      <option value="ガス(13A)">ガス(13A)</option>
-    </select>
-  </div>
+        <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
+          計算
+        </button>
+      </div>
 
-  {/* ✅ コスト単価入力 */}
-  <div className="flex flex-col items-center w-40">
-    <label className="mb-2 font-semibold">コスト単価 ({costUnitLabel})</label>
-    <input
-      type="number"
-      value={costUnit === 0 ? "" : costUnit}
-      onChange={(e) => setCostUnit(e.target.value === "" ? 0 : parseFloat(e.target.value))}
-      className="border border-gray-400 p-2 rounded w-full text-center"
-    />
-  </div>
+      {/* ✅ 計算結果の表示 */}
+      {calculatedData && (
+        <div className="grid grid-cols-2 gap-6 w-full max-w-6xl">
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+            <h2 className="text-lg font-semibold">現状のコスト</h2>
+            <p className="text-3xl font-bold">{calculatedData.currentCost} 円/h</p>
+            <p className="text-3xl font-bold">{calculatedData.yearlyCost} 円/年</p>
+          </div>
 
-  {/* ✅ 稼働時間入力 */}
-  <div className="flex flex-col items-center w-40">
-    <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
-    <input
-      type="number"
-      value={operatingHours === 0 ? "" : operatingHours}
-      onChange={(e) => setOperatingHours(e.target.value === "" ? 0 : parseFloat(e.target.value))}
-      className="border border-gray-400 p-2 rounded w-full text-center"
-    />
-  </div>
-
-  {/* ✅ 稼働日数入力 */}
-  <div className="flex flex-col items-center w-40">
-    <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
-    <input
-      type="number"
-      value={operatingDays === 0 ? "" : operatingDays}
-      onChange={(e) => setOperatingDays(e.target.value === "" ? 0 : parseFloat(e.target.value))}
-      className="border border-gray-400 p-2 rounded w-full text-center"
-    />
-  </div>
-
-  <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
-    計算
-  </button>
-</div>
-
-{/* 計算結果の表示 */}
-{calculatedData && (
-  <div className="grid grid-cols-2 gap-6 w-full max-w-6xl">
-    {/* 現状のコスト */}
-    <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
-      <h2 className="text-lg font-semibold">現状のコスト</h2>
-      <p className="text-3xl font-bold">{calculatedData.currentCost} 円/h</p>
-      <p className="text-3xl font-bold">{calculatedData.yearlyCost} 円/年</p>
-    </div>
-
-    {/* 排熱回収装置によるコストメリット */}
-    <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
-      <h2 className="text-lg font-semibold">排熱回収装置によるコストメリット</h2>
-      <p className="text-3xl font-bold">{calculatedData.recoveryBenefit} 円/h</p>
-      <p className="text-3xl font-bold">{calculatedData.yearlyRecoveryBenefit} 円/年</p>
-    </div>
-  </div>
-)}
-
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+            <h2 className="text-lg font-semibold">排熱回収装置によるコストメリット</h2>
+            <p className="text-3xl font-bold">{calculatedData.recoveryBenefit} 円/h</p>
+            <p className="text-3xl font-bold">{calculatedData.yearlyRecoveryBenefit} 円/年</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
