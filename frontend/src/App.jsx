@@ -41,8 +41,13 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ 計算リクエストを送信
+  // ✅ 計算リクエストを送信 (最新のリアルタイムデータを使用)
   const fetchCalculation = async () => {
+    if (!realTimeData) {
+      setError("リアルタイムデータが取得できていません");
+      return;
+    }
+
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
         flow: flow1,
@@ -50,6 +55,7 @@ const App = () => {
         costUnit,
         operatingHours,
         operatingDays,
+        temperature: realTimeData.temperature, // 最新の温度データを送信
       });
       console.log("計算結果:", response.data);
       setCalculatedData(response.data); // 計算結果を保存
@@ -118,7 +124,7 @@ const App = () => {
 
       {/* ✅ 計算結果の表示（4つ） */}
       {calculatedData && (
-        <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl">
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold">現状コスト</h2>
             <p className="text-xl font-bold">{calculatedData.currentCost} 円/h</p>
