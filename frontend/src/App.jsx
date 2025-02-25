@@ -140,14 +140,26 @@ const App = () => {
       </div>
 
       {/* ✅ 計算結果の表示（4つ） */}
-      {realTimeData?.currentCost !== undefined ? (
+      {realTimeData?.currentCost !== undefined && (
         <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold">現状コスト</h2>
             <p className="text-xl font-bold">{realTimeData.currentCost} 円/h</p>
           </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h2 className="text-lg font-semibold">年間コスト</h2>
+            <p className="text-xl font-bold">{realTimeData.yearlyCost} 円/年</p>
+          </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h2 className="text-lg font-semibold">排熱回収メリット</h2>
+            <p className="text-xl font-bold">{realTimeData.recoveryBenefit} 円/h</p>
+          </div>
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
+            <h2 className="text-lg font-semibold">年間排熱回収メリット</h2>
+            <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit} 円/年</p>
+          </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
