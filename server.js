@@ -17,35 +17,38 @@ app.use(express.json());
 
 const DEVICE_ID = "hainetsukaishu-demo0";
 
-// ✅ **熱量計算関数**
+// **熱量計算関数**
 function calculateEnergy(tempDiff, flowRate) {
   const specificHeat = 4.186; // 水の比熱 (kJ/kg・℃)
   const density = 1000; // 水の密度 (kg/m³)
   return tempDiff * flowRate * density * specificHeat; // kJ
 }
 
-// ✅ **コスト計算関数**
-function calculateCost(energy_kJ, flowRate, costType, costUnit) {
+// **コスト計算関数**
+function calculateCost(energy_kJ, costType, costUnit) {
   const energy_kWh = energy_kJ / 3600; // kJ → kWh 変換
   let cost = 0;
 
   if (costType === "電気代") {
     cost = energy_kWh * costUnit;
   } else {
-    const fuelConversionFactor = {
-      "プロパンガス": 0.74, // kg/m³
-      "灯油代": 0.85,       // kg/L
-      "重油代": 0.92,       // kg/L
-      "ガス(13A)代": 0.75,  // kg/m³
+    // 燃料のエネルギー変換係数 (MJ/kg)
+    const fuelEnergyDensity = {
+      "プロパンガス": 50.3,
+      "灯油代": 36.4,
+      "重油代": 39.6,
+      "ガス(13A)代": 45.8,
     };
-    const fuelConsumption = flowRate * (fuelConversionFactor[costType] || 1); // kg/h
+
+    // 燃料消費量 (kg) = kJ / (エネルギー密度 * 1000)
+    const fuelConsumption = energy_kJ / (fuelEnergyDensity[costType] * 1000);
     cost = fuelConsumption * costUnit;
   }
-  
+
   return { cost: cost.toFixed(2) };
 }
 
-// ✅ **リアルタイムデータ取得**
+// **リアルタイムデータ取得**
 app.get("/api/realtime", async (req, res) => {
   try {
     const database = client.database(databaseId);
@@ -75,7 +78,7 @@ app.get("/api/realtime", async (req, res) => {
   }
 });
 
-// ✅ **計算エンドポイント**
+// **計算エンドポイント**
 app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
@@ -108,11 +111,11 @@ app.post("/api/calculate", async (req, res) => {
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC3, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC3, flow);
 
-    const { cost: currentCost } = calculateCost(energyCurrent_kJ, flow, costType, costUnit);
-    const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, flow, costType, costUnit);
+    const { cost: currentCost } = calculateCost(energyCurrent_kJ, costType, costUnit);
+    const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, costType, costUnit);
 
-    const yearlyCost = currentCost * operatingHours * operatingDays;
-    const yearlyRecoveryBenefit = recoveryBenefit * operatingHours * operatingDays;
+    const yearlyCost = (currentCost * operatingHours * operatingDays).toFixed(2);
+    const yearlyRecoveryBenefit = (recoveryBenefit * operatingHours * operatingDays).toFixed(2);
 
     res.status(200).json({
       currentCost,
