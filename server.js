@@ -6,7 +6,6 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3095;
 
-// Cosmos DB 接続情報
 const endpoint = process.env.COSMOSDB_ENDPOINT;
 const key = process.env.COSMOSDB_KEY;
 const client = new CosmosClient({ endpoint, key });
@@ -18,41 +17,41 @@ app.use(express.json());
 
 const DEVICE_ID = "hainetsukaishu-demo0";
 
-// ✅ **単価（円/kWh）**
+// ✅ **5種類の単価（円/kWh）**
 const unitCosts = {
   electricity: 30,
   propane: 20,
   kerosene: 15,
   heavy_oil: 10,
-  "gas_13A": 25, // ✅ 13Aを追加
+  gas_13A: 25, // ✅ 13Aを追加
 };
 
 // ✅ **熱量計算関数**
 function calculateEnergy(tempDiff, flowRate) {
-  const specificHeat = 4.186; // 水の比熱 (kJ/kg・℃)
-  const density = 1000; // 水の密度 (kg/m³)
-  return tempDiff * flowRate * density * specificHeat; // kJ
+  const specificHeat = 4.186;
+  const density = 1000;
+  return tempDiff * flowRate * density * specificHeat;
 }
 
-// ✅ **コスト計算関数**
-function calculateCost(energy_kJ) {
+// ✅ **コスト計算関数（選択したコストで計算）**
+function calculateCost(energy_kJ, selectedCost) {
   const kWh = energy_kJ / 3600;
-  return Object.fromEntries(
-    Object.entries(unitCosts).map(([key, cost]) => [key, (kWh * cost).toFixed(2)])
-  );
+  return selectedCost ? (kWh * selectedCost).toFixed(2) : "0.00";
 }
 
-// ✅ **リアルタイムのデータ取得・計算**
+// ✅ **リアルタイムデータ取得**
 app.post("/api/realtime", async (req, res) => {
   try {
     console.log("✅ フロントエンドからのリクエスト:", req.body);
 
-    const { flow } = req.body;
-    if (!flow) {
-      return res.status(400).json({ error: "Flow1 の値が必要です" });
+    const { flow, selectedCostType, selectedCostValue } = req.body;
+    if (!flow || !selectedCostType || !selectedCostValue) {
+      return res.status(400).json({ error: "Flow1, コスト種別, コスト単価が必要です" });
     }
 
     console.log("✅ 受信した Flow1:", flow);
+    console.log("✅ 選択したコスト種別:", selectedCostType);
+    console.log("✅ 選択したコスト単価:", selectedCostValue);
 
     const database = client.database(databaseId);
     const container = database.container(containerId);
@@ -69,7 +68,6 @@ app.post("/api/realtime", async (req, res) => {
 
     const latestData = items[0];
 
-    // ✅ **温度データ**
     const temperatureData = {
       supply1: latestData.tempC1,
       supply2: latestData.tempC2,
@@ -77,17 +75,18 @@ app.post("/api/realtime", async (req, res) => {
       discharge2: latestData.tempC4,
     };
 
-    // ✅ **熱量とコスト計算**
     const tempDiffCurrent = latestData.tempC2 - latestData.tempC3;
     const energyCurrent = calculateEnergy(tempDiffCurrent, flow);
-    const costCurrent = calculateCost(energyCurrent);
+    const costCurrent = calculateCost(energyCurrent, selectedCostValue);
 
     const tempDiffRecovery = latestData.tempC4 - latestData.tempC3;
     const energyRecovery = calculateEnergy(tempDiffRecovery, flow);
-    const costRecovery = calculateCost(energyRecovery);
+    const costRecovery = calculateCost(energyRecovery, selectedCostValue);
 
     res.status(200).json({
       flowReceived: flow,
+      selectedCostType,
+      selectedCostValue,
       temperature: temperatureData,
       energy: {
         current: energyCurrent.toFixed(2),
@@ -104,7 +103,6 @@ app.post("/api/realtime", async (req, res) => {
   }
 });
 
-// サーバー起動
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
 });
