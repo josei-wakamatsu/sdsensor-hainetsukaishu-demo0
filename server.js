@@ -27,34 +27,62 @@ function calculateEnergy(tempDiff, flowRate) {
 // ✅ **コスト計算関数**
 function calculateCost(energy_kJ, flowRate, costType, costUnit) {
   const energy_kWh = energy_kJ / 3600; // kJ → kWh 変換
-  let fuelConsumption = 0;
   let cost = 0;
 
   if (costType === "電気代") {
     cost = energy_kWh * costUnit;
   } else {
-    // ✅ ガス・油の場合、燃料消費量を求める (kg/h)
     const fuelConversionFactor = {
       "プロパンガス": 0.74, // kg/m³
       "灯油代": 0.85,       // kg/L
       "重油代": 0.92,       // kg/L
       "ガス(13A)代": 0.75,  // kg/m³
     };
-    fuelConsumption = flowRate * (fuelConversionFactor[costType] || 1); // kg/h
+    const fuelConsumption = flowRate * (fuelConversionFactor[costType] || 1); // kg/h
     cost = fuelConsumption * costUnit;
   }
   
-  return { cost: cost.toFixed(2), fuelConsumption: fuelConsumption.toFixed(2) };
+  return { cost: cost.toFixed(2) };
 }
 
-app.post("/api/realtime", async (req, res) => {
+// ✅ **リアルタイムデータ取得**
+app.get("/api/realtime", async (req, res) => {
+  try {
+    const database = client.database(databaseId);
+    const container = database.container(containerId);
+    const querySpec = {
+      query: `SELECT TOP 1 * FROM c WHERE c.device = @deviceId ORDER BY c.time DESC`,
+      parameters: [{ name: "@deviceId", value: DEVICE_ID }],
+    };
+    const { resources: items } = await container.items.query(querySpec).fetchAll();
+
+    if (items.length === 0) {
+      return res.status(500).json({ error: "Azure からデータを取得できませんでした" });
+    }
+
+    const latestData = items[0];
+
+    res.status(200).json({
+      temperature: {
+        tempC1: latestData.tempC1,
+        tempC2: latestData.tempC2,
+        tempC3: latestData.tempC3,
+        tempC4: latestData.tempC4,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: "サーバーエラーが発生しました" });
+  }
+});
+
+// ✅ **計算エンドポイント**
+app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
 
     const { flow, costType, costUnit, operatingHours, operatingDays } = req.body;
 
     if (!flow || !costType || !costUnit || !operatingHours || !operatingDays) {
-      console.error("❌ 必須データが不足");
       return res.status(400).json({ error: "すべてのパラメータが必要です" });
     }
 
@@ -77,15 +105,12 @@ app.post("/api/realtime", async (req, res) => {
     const tempC3 = latestData.tempC3;
     const tempC4 = latestData.tempC4;
 
-    // ✅ 各温度差を使用した熱量計算
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC3, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC3, flow);
 
-    // ✅ コスト計算（kWh or kg/h ベース）
     const { cost: currentCost } = calculateCost(energyCurrent_kJ, flow, costType, costUnit);
     const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, flow, costType, costUnit);
 
-    // ✅ 年間コスト計算
     const yearlyCost = currentCost * operatingHours * operatingDays;
     const yearlyRecoveryBenefit = recoveryBenefit * operatingHours * operatingDays;
 
@@ -94,7 +119,6 @@ app.post("/api/realtime", async (req, res) => {
       yearlyCost,
       recoveryBenefit,
       yearlyRecoveryBenefit,
-      temperature: { tempC1, tempC2, tempC3, tempC4 }, // ✅ 追加
     });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
