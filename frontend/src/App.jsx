@@ -41,44 +41,28 @@ const App = () => {
 
       <div className="flex flex-col items-center mb-6">
         <label>Flow1 の値を入力 (L/min):</label>
-        <input
-          type="number"
-          value={flow1}
-          onChange={(e) => setFlow1(Number(e.target.value))}
-          className="border border-gray-400 p-2 rounded mb-4"
-        />
+        <input type="number" value={flow1} onChange={(e) => setFlow1(Number(e.target.value))} className="border border-gray-400 p-2 rounded mb-4" />
 
         <label>コスト種別を選択:</label>
-        <select
-          value={selectedCostType}
-          onChange={(e) => setSelectedCostType(e.target.value)}
-          className="border border-gray-400 p-2 rounded mb-4"
-        >
+        <select value={selectedCostType} onChange={(e) => setSelectedCostType(e.target.value)} className="border border-gray-400 p-2 rounded mb-4">
           {Object.entries(costOptions).map(([key, label]) => (
             <option key={key} value={key}>{label}</option>
           ))}
         </select>
 
         <label>コスト単価を入力 (円/kWh):</label>
-        <input
-          type="number"
-          value={selectedCostValue}
-          onChange={(e) => setSelectedCostValue(Number(e.target.value))}
-          className="border border-gray-400 p-2 rounded mb-4"
-        />
+        <input type="number" value={selectedCostValue} onChange={(e) => setSelectedCostValue(Number(e.target.value))} className="border border-gray-400 p-2 rounded mb-4" />
 
-        <button onClick={fetchRealTimeData} className="bg-blue-500 text-white p-2 rounded">
-          計算
-        </button>
+        <button onClick={fetchRealTimeData} className="bg-blue-500 text-white p-2 rounded">計算</button>
       </div>
 
       {realTimeData && (
-        <>
-          <h2 className="text-md font-semibold text-gray-700 text-center mb-2">エネルギーとコスト</h2>
-          <p>エネルギー: {realTimeData.energy.current} kJ</p>
-          <p>回収エネルギー: {realTimeData.energy.recovery} kJ</p>
-          <p>コスト ({costOptions[realTimeData.selectedCostType]}): {realTimeData.cost.current} 円</p>
-        </>
+        <div>
+          <p>現状コスト: {realTimeData.cost.current} 円/h</p>
+          <p>年間コスト: {realTimeData.cost.yearlyCurrent} 円/年</p>
+          <p>排熱回収メリット: {realTimeData.cost.recovery} 円/h</p>
+          <p>年間回収メリット: {realTimeData.cost.yearlyRecovery} 円/年</p>
+        </div>
       )}
     </div>
   );

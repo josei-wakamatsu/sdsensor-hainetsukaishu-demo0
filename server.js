@@ -17,25 +17,16 @@ app.use(express.json());
 
 const DEVICE_ID = "hainetsukaishu-demo0";
 
-// ✅ **5種類の単価（円/kWh）**
-const unitCosts = {
-  electricity: 30,
-  propane: 20,
-  kerosene: 15,
-  heavy_oil: 10,
-  gas_13A: 25, // ✅ 13Aを追加
-};
-
 // ✅ **熱量計算関数**
 function calculateEnergy(tempDiff, flowRate) {
-  const specificHeat = 4.186;
-  const density = 1000;
-  return tempDiff * flowRate * density * specificHeat;
+  const specificHeat = 4.186; // 水の比熱 (kJ/kg・℃)
+  const density = 1000; // 水の密度 (kg/m³)
+  return tempDiff * flowRate * density * specificHeat; // kJ
 }
 
-// ✅ **コスト計算関数（選択したコストで計算）**
+// ✅ **コスト計算関数**
 function calculateCost(energy_kJ, selectedCost) {
-  const kWh = energy_kJ / 3600;
+  const kWh = energy_kJ / 3600; // kJ → kWh 変換
   return selectedCost ? (kWh * selectedCost).toFixed(2) : "0.00";
 }
 
@@ -75,13 +66,17 @@ app.post("/api/realtime", async (req, res) => {
       discharge2: latestData.tempC4,
     };
 
-    const tempDiffCurrent = latestData.tempC2 - latestData.tempC3;
+    // ✅ **現状の熱量計算（tempC4 - tempC3）**
+    const tempDiffCurrent = latestData.tempC4 - latestData.tempC3;
     const energyCurrent = calculateEnergy(tempDiffCurrent, flow);
     const costCurrent = calculateCost(energyCurrent, selectedCostValue);
+    const yearlyCostCurrent = (costCurrent * 8 * 365).toFixed(2); // 8時間 × 365日
 
-    const tempDiffRecovery = latestData.tempC4 - latestData.tempC3;
+    // ✅ **排熱回収装置の熱量計算（tempC2 - tempC3）**
+    const tempDiffRecovery = latestData.tempC2 - latestData.tempC3;
     const energyRecovery = calculateEnergy(tempDiffRecovery, flow);
     const costRecovery = calculateCost(energyRecovery, selectedCostValue);
+    const yearlyCostRecovery = (costRecovery * 8 * 365).toFixed(2); // 8時間 × 365日
 
     res.status(200).json({
       flowReceived: flow,
@@ -94,7 +89,9 @@ app.post("/api/realtime", async (req, res) => {
       },
       cost: {
         current: costCurrent,
+        yearlyCurrent: yearlyCostCurrent,
         recovery: costRecovery,
+        yearlyRecovery: yearlyCostRecovery,
       },
     });
   } catch (error) {
