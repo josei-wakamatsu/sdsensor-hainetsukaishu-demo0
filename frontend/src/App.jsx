@@ -21,10 +21,10 @@ const App = () => {
     tempC4: "排水2",
   };
 
-  // コスト単価の単位
+  // コスト単価の単位を選択したコストの名前の横に表示
   const costUnitLabel = costType === "電気代" ? "円/kWh" : "円/kg";
 
-  // リアルタイムデータを取得
+  // リアルタイムデータを定期取得
   const fetchRealTimeData = async () => {
     try {
       const response = await axios.get(`${backendUrl}/api/realtime`);
@@ -37,25 +37,25 @@ const App = () => {
 
   useEffect(() => {
     fetchRealTimeData();
-    const interval = setInterval(fetchRealTimeData, 5000); // 5秒ごとに更新
+    const interval = setInterval(fetchRealTimeData, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // 計算リクエストを送信
+  // 計算リクエストを送信 (最新のリアルタイムデータを使用)
   const fetchCalculation = async () => {
     await fetchRealTimeData();
-    if (!realTimeData || !realTimeData.temperature) {
+    if (!realTimeData) {
       setError("リアルタイムデータが取得できていません");
       return;
     }
 
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
-        flow: Number(flow1),
+        flow: flow1,
         costType,
-        costUnit: Number(costUnit),
-        operatingHours: Number(operatingHours),
-        operatingDays: Number(operatingDays),
+        costUnit,
+        operatingHours,
+        operatingDays,
         temperature: realTimeData.temperature,
       });
       console.log("計算結果:", response.data);
@@ -70,7 +70,7 @@ const App = () => {
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
       <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
 
-      {/* ✅ リアルタイム温度データ (常に表示) */}
+      {/* リアルタイム温度データ */}
       <div className="grid grid-cols-4 gap-6 w-full max-w-6xl mb-6">
         {realTimeData?.temperature &&
           Object.entries(realTimeData.temperature).map(([key, value]) => (
@@ -81,14 +81,14 @@ const App = () => {
           ))}
       </div>
 
-      {/* ✅ 入力フォーム */}
+      {/* 入力フォーム (5つ) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">流量 (L/min)</label>
           <input
             type="number"
             value={flow1}
-            onChange={(e) => setFlow1(e.target.value)}
+            onChange={(e) => setFlow1(Number(e.target.value) || 0)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -100,11 +100,11 @@ const App = () => {
             onChange={(e) => setCostType(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           >
-            <option value="電気">電気</option>
+            <option value="電気代">電気代</option>
             <option value="プロパンガス">プロパンガス</option>
-            <option value="灯油">灯油</option>
-            <option value="重油">重油</option>
-            <option value="ガス(13A)">ガス(13A)</option>
+            <option value="灯油代">灯油代</option>
+            <option value="重油代">重油代</option>
+            <option value="ガス(13A)代">ガス(13A)代</option>
           </select>
         </div>
 
@@ -113,7 +113,7 @@ const App = () => {
           <input
             type="number"
             value={costUnit}
-            onChange={(e) => setCostUnit(e.target.value)}
+            onChange={(e) => setCostUnit(Number(e.target.value) || 0)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -123,7 +123,7 @@ const App = () => {
           <input
             type="number"
             value={operatingHours}
-            onChange={(e) => setOperatingHours(e.target.value)}
+            onChange={(e) => setOperatingHours(Number(e.target.value) || 0)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -133,7 +133,7 @@ const App = () => {
           <input
             type="number"
             value={operatingDays}
-            onChange={(e) => setOperatingDays(e.target.value)}
+            onChange={(e) => setOperatingDays(Number(e.target.value) || 0)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -143,23 +143,20 @@ const App = () => {
         </button>
       </div>
 
-      {/* ✅ 計算結果の表示（4つ） */}
+      {/* 計算結果の表示 */}
       {calculatedData && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-6xl">
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold">現状コスト</h2>
+        <div className="grid grid-cols-2 gap-6 w-full max-w-6xl">
+          {/* 現状のコスト */}
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+            <h2 className="text-lg font-semibold">現状のコスト</h2>
             <p className="text-xl font-bold">{calculatedData.currentCost} 円/h</p>
-          </div>
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold">年間コスト</h2>
             <p className="text-xl font-bold">{calculatedData.yearlyCost} 円/年</p>
           </div>
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold">排熱回収メリット</h2>
+
+          {/* 排熱回収装置によるコストメリット */}
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+            <h2 className="text-lg font-semibold">排熱回収装置によるコストメリット</h2>
             <p className="text-xl font-bold">{calculatedData.recoveryBenefit} 円/h</p>
-          </div>
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold">年間排熱回収メリット</h2>
             <p className="text-xl font-bold">{calculatedData.yearlyRecoveryBenefit} 円/年</p>
           </div>
         </div>
