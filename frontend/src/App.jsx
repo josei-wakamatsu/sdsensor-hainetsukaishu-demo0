@@ -21,10 +21,10 @@ const App = () => {
     tempC4: "排水2",
   };
 
-  // ✅ コスト単価の単位を選択したコストの名前の横に表示
+  // コスト単価の単位
   const costUnitLabel = costType === "電気代" ? "円/kWh" : "円/kg";
 
-  // ✅ リアルタイムデータを定期取得（常に表示）
+  // リアルタイムデータを取得
   const fetchRealTimeData = async () => {
     try {
       const response = await axios.get(`${backendUrl}/api/realtime`);
@@ -41,25 +41,25 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // ✅ 計算リクエストを送信 (最新のリアルタイムデータを使用)
+  // 計算リクエストを送信
   const fetchCalculation = async () => {
-    await fetchRealTimeData(); // 最新の温度データを取得
-    if (!realTimeData) {
+    await fetchRealTimeData();
+    if (!realTimeData || !realTimeData.temperature) {
       setError("リアルタイムデータが取得できていません");
       return;
     }
 
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
-        flow: flow1,
+        flow: Number(flow1),
         costType,
-        costUnit,
-        operatingHours,
-        operatingDays,
-        temperature: realTimeData.temperature, // 最新の温度データを送信
+        costUnit: Number(costUnit),
+        operatingHours: Number(operatingHours),
+        operatingDays: Number(operatingDays),
+        temperature: realTimeData.temperature,
       });
       console.log("計算結果:", response.data);
-      setCalculatedData(response.data); // 計算結果を保存
+      setCalculatedData(response.data);
     } catch (error) {
       console.error("計算エラー:", error);
       setError("計算に失敗しました");
@@ -81,14 +81,14 @@ const App = () => {
           ))}
       </div>
 
-      {/* ✅ 入力フォーム (横1列に並べる) */}
+      {/* ✅ 入力フォーム */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
         <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">Flow1 (L/min)</label>
           <input
             type="number"
             value={flow1}
-            onChange={(e) => setFlow1(Number(e.target.value) || 0)}
+            onChange={(e) => setFlow1(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -113,7 +113,7 @@ const App = () => {
           <input
             type="number"
             value={costUnit}
-            onChange={(e) => setCostUnit(Number(e.target.value) || 0)}
+            onChange={(e) => setCostUnit(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -123,7 +123,7 @@ const App = () => {
           <input
             type="number"
             value={operatingHours}
-            onChange={(e) => setOperatingHours(Number(e.target.value) || 0)}
+            onChange={(e) => setOperatingHours(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
@@ -133,7 +133,7 @@ const App = () => {
           <input
             type="number"
             value={operatingDays}
-            onChange={(e) => setOperatingDays(Number(e.target.value) || 0)}
+            onChange={(e) => setOperatingDays(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
