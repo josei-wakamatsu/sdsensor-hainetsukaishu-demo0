@@ -25,9 +25,26 @@ function calculateEnergy(tempDiff, flowRate) {
 }
 
 // ✅ **コスト計算関数**
-function calculateCost(energy_kJ, selectedCost) {
-  const kWh = energy_kJ / 3600; // kJ → kWh 変換
-  return selectedCost ? (kWh * selectedCost).toFixed(2) : "0.00";
+function calculateCost(energy_kJ, flowRate, costType, costUnit) {
+  const energy_kWh = energy_kJ / 3600; // kJ → kWh 変換
+  let fuelConsumption = 0;
+  let cost = 0;
+
+  if (costType === "電気代") {
+    cost = energy_kWh * costUnit;
+  } else {
+    // ✅ ガス・油の場合、燃料消費量を求める (kg/h)
+    const fuelConversionFactor = {
+      "プロパンガス": 0.74, // kg/m³
+      "灯油代": 0.85,       // kg/L
+      "重油代": 0.92,       // kg/L
+      "ガス(13A)代": 0.75,  // kg/m³
+    };
+    fuelConsumption = flowRate * (fuelConversionFactor[costType] || 1); // kg/h
+    cost = fuelConsumption * costUnit;
+  }
+  
+  return { cost: cost.toFixed(2), fuelConsumption: fuelConsumption.toFixed(2) };
 }
 
 app.post("/api/realtime", async (req, res) => {
@@ -59,29 +76,32 @@ app.post("/api/realtime", async (req, res) => {
     const tempC4 = latestData.tempC4;
     const tempC2 = latestData.tempC2;
 
-    // ✅ 電気代は kWh, 他は kg で計算
-    const isElectricity = costType === "電気代";
-    const energyUnit = isElectricity ? 3600 : 1; // kJ → kWh 変換用
-    const massFactor = isElectricity ? 1 : 0.85; // kg 換算用 (プロパンガスの場合)
+    // ✅ 各温度差を使用した熱量計算
+    const energyCurrent_kJ = calculateEnergy(tempC4 - tempC3, flow);
+    const energyRecovery_kJ = calculateEnergy(tempC2 - tempC3, flow);
 
-    // ✅ それぞれの熱量計算
-    const energyCurrent = calculateEnergy(tempC4 - tempC3, flow) / energyUnit * massFactor;
-    const energyRecovery = calculateEnergy(tempC2 - tempC3, flow) / energyUnit * massFactor;
+    // ✅ コスト計算（kWh or kg/h ベース）
+    const { cost: currentCost, fuelConsumption: fuelCurrent } = calculateCost(energyCurrent_kJ, flow, costType, costUnit);
+    const { cost: recoveryBenefit, fuelConsumption: fuelRecovery } = calculateCost(energyRecovery_kJ, flow, costType, costUnit);
 
-    // ✅ コスト計算
-    const currentCost = energyCurrent * costUnit;
+    // ✅ 年間コスト計算
     const yearlyCost = currentCost * operatingHours * operatingDays;
-    const recoveryBenefit = energyRecovery * costUnit;
     const yearlyRecoveryBenefit = recoveryBenefit * operatingHours * operatingDays;
 
-    res.status(200).json({ currentCost, yearlyCost, recoveryBenefit, yearlyRecoveryBenefit });
+    res.status(200).json({
+      currentCost,
+      yearlyCost,
+      recoveryBenefit,
+      yearlyRecoveryBenefit,
+      fuelConsumption: {
+        current: fuelCurrent, // 現状の燃料消費量 (kg/h)
+        recovery: fuelRecovery // 排熱回収後の燃料消費量 (kg/h)
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
-
-
-
 
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
