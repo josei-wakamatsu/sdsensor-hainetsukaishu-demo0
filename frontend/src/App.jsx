@@ -38,52 +38,62 @@ const App = () => {
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
       <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
 
-      {/* 入力フォーム */}
-      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center w-full max-w-lg mb-6">
-        <label className="mb-2 font-semibold">Flow1 の値を入力 (L/min):</label>
-        <input
-          type="number"
-          value={flow1}
-          onChange={(e) => setFlow1(e.target.value)}
-          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
-        />
+      {/* 入力フォームを横並びに配置 */}
+      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-row items-center w-full max-w-5xl mb-6 gap-4">
+        <div className="flex flex-col items-center">
+          <label className="mb-2 font-semibold">Flow1 (L/min):</label>
+          <input
+            type="number"
+            value={flow1}
+            onChange={(e) => setFlow1(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-32 text-center"
+          />
+        </div>
 
-        <label className="mb-2 font-semibold">コスト種類を選択:</label>
-        <select
-          value={costType}
-          onChange={(e) => setCostType(e.target.value)}
-          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
-        >
-          <option value="電気代">電気代</option>
-          <option value="プロパンガス">プロパンガス</option>
-          <option value="灯油代">灯油代</option>
-          <option value="重油代">重油代</option>
-          <option value="ガス(13A)代">ガス(13A)代</option>
-        </select>
+        <div className="flex flex-col items-center">
+          <label className="mb-2 font-semibold">コスト種類:</label>
+          <select
+            value={costType}
+            onChange={(e) => setCostType(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-40 text-center"
+          >
+            <option value="電気代">電気代</option>
+            <option value="プロパンガス">プロパンガス</option>
+            <option value="灯油代">灯油代</option>
+            <option value="重油代">重油代</option>
+            <option value="ガス(13A)代">ガス(13A)代</option>
+          </select>
+        </div>
 
-        <label className="mb-2 font-semibold">コスト単価を入力 ({costUnitLabel}):</label>
-        <input
-          type="number"
-          value={costUnit}
-          onChange={(e) => setCostUnit(e.target.value)}
-          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
-        />
+        <div className="flex flex-col items-center">
+          <label className="mb-2 font-semibold">単価 ({costUnitLabel}):</label>
+          <input
+            type="number"
+            value={costUnit}
+            onChange={(e) => setCostUnit(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-32 text-center"
+          />
+        </div>
 
-        <label className="mb-2 font-semibold">稼働時間 (時間/日):</label>
-        <input
-          type="number"
-          value={operatingHours}
-          onChange={(e) => setOperatingHours(e.target.value)}
-          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
-        />
+        <div className="flex flex-col items-center">
+          <label className="mb-2 font-semibold">稼働時間 (h/日):</label>
+          <input
+            type="number"
+            value={operatingHours}
+            onChange={(e) => setOperatingHours(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-32 text-center"
+          />
+        </div>
 
-        <label className="mb-2 font-semibold">稼働日数 (日/年):</label>
-        <input
-          type="number"
-          value={operatingDays}
-          onChange={(e) => setOperatingDays(e.target.value)}
-          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
-        />
+        <div className="flex flex-col items-center">
+          <label className="mb-2 font-semibold">稼働日数 (日/年):</label>
+          <input
+            type="number"
+            value={operatingDays}
+            onChange={(e) => setOperatingDays(e.target.value)}
+            className="border border-gray-400 p-2 rounded w-32 text-center"
+          />
+        </div>
 
         <button onClick={fetchRealTimeData} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
@@ -115,6 +125,18 @@ const App = () => {
         </div>
       ) : (
         <p className="text-center text-red-500 mt-4">{error || "データなし (null)"}</p>
+      )}
+
+      {/* ✅ 追加: リアルタイム温度データの表示 */}
+      {realTimeData?.temperature && (
+        <div className="grid grid-cols-2 gap-6 w-full max-w-4xl mt-6">
+          {Object.entries(realTimeData.temperature).map(([key, value]) => (
+            <div key={key} className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
+              <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">{key}</h2>
+              <p className="text-xl font-bold">{parseFloat(value).toFixed(2)} °C</p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
