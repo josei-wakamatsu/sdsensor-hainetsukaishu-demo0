@@ -142,25 +142,25 @@ const App = () => {
           計算
         </button>
       </div>
+{/* 計算結果の表示 */}
+{calculatedData && (
+  <div className="grid grid-cols-2 gap-6 w-full max-w-6xl">
+    {/* 現状のコスト */}
+    <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+      <h2 className="text-lg font-semibold">現状のコスト</h2>
+      <p className="text-3xl font-bold">{calculatedData.currentCost} 円/h</p>
+      <p className="text-3xl font-bold">{calculatedData.yearlyCost} 円/年</p>
+    </div>
 
-      {/* 計算結果の表示 */}
-      {calculatedData && (
-        <div className="grid grid-cols-2 gap-6 w-full max-w-6xl">
-          {/* 現状のコスト */}
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
-            <h2 className="text-lg font-semibold">現状のコスト</h2>
-            <p className="text-xl font-bold">{calculatedData.currentCost} 円/h</p>
-            <p className="text-xl font-bold">{calculatedData.yearlyCost} 円/年</p>
-          </div>
+    {/* 排熱回収装置によるコストメリット */}
+    <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
+      <h2 className="text-lg font-semibold">排熱回収装置によるコストメリット</h2>
+      <p className="text-3xl font-bold">{calculatedData.recoveryBenefit} 円/h</p>
+      <p className="text-3xl font-bold">{calculatedData.yearlyRecoveryBenefit} 円/年</p>
+    </div>
+  </div>
+)}
 
-          {/* 排熱回収装置によるコストメリット */}
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center border border-black">
-            <h2 className="text-lg font-semibold">排熱回収装置によるコストメリット</h2>
-            <p className="text-xl font-bold">{calculatedData.recoveryBenefit} 円/h</p>
-            <p className="text-xl font-bold">{calculatedData.yearlyRecoveryBenefit} 円/年</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
