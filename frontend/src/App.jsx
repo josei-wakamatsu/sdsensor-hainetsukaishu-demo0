@@ -96,25 +96,25 @@ const App = () => {
           {/* ✅ 現状のコスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">現状コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.currentCost.toFixed(2)} 円/h</p>
+            <p className="text-xl font-bold">{parseFloat(realTimeData.currentCost).toFixed(2)} 円/h</p>
           </div>
 
           {/* ✅ 年間コスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyCost.toFixed(2)} 円/年</p>
+            <p className="text-xl font-bold">{parseFloat(realTimeData.yearlyCost).toFixed(2)} 円/年</p>
           </div>
 
           {/* ✅ 排熱回収装置によるコストメリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.recoveryBenefit.toFixed(2)} 円/h</p>
+            <p className="text-xl font-bold">{parseFloat(realTimeData.recoveryBenefit).toFixed(2)} 円/h</p>
           </div>
 
           {/* ✅ 年間排熱回収メリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit.toFixed(2)} 円/年</p>
+            <p className="text-xl font-bold">{parseFloat(realTimeData.yearlyRecoveryBenefit).toFixed(2)} 円/年</p>
           </div>
         </div>
       ) : (
