@@ -38,7 +38,7 @@ app.post("/api/realtime", async (req, res) => {
 
     if (!flow || !costType || !costUnit || !operatingHours || !operatingDays) {
       console.error("❌ 必須データが不足");
-      return res.status(400).json({ error: "すべてのパラメータ (flow, costType, costUnit, operatingHours, operatingDays) が必要です" });
+      return res.status(400).json({ error: "すべてのパラメータが必要です" });
     }
 
     const database = client.database(databaseId);
@@ -59,13 +59,19 @@ app.post("/api/realtime", async (req, res) => {
     const tempC4 = latestData.tempC4;
     const tempC2 = latestData.tempC2;
 
-    const energyCurrent = calculateEnergy(tempC4 - tempC3, flow);
-    const energyRecovery = calculateEnergy(tempC2 - tempC3, flow);
+    // ✅ 電気代は kWh, 他は kg で計算
+    const isElectricity = costType === "電気代";
+    const energyUnit = isElectricity ? 3600 : 1; // kJ → kWh 変換用
+    const massFactor = isElectricity ? 1 : 0.85; // kg 換算用 (プロパンガスの場合)
 
-    const currentCost = calculateCost(energyCurrent, costUnit);
+    // ✅ それぞれの熱量計算
+    const energyCurrent = calculateEnergy(tempC4 - tempC3, flow) / energyUnit * massFactor;
+    const energyRecovery = calculateEnergy(tempC2 - tempC3, flow) / energyUnit * massFactor;
+
+    // ✅ コスト計算
+    const currentCost = energyCurrent * costUnit;
     const yearlyCost = currentCost * operatingHours * operatingDays;
-
-    const recoveryBenefit = calculateCost(energyRecovery, costUnit);
+    const recoveryBenefit = energyRecovery * costUnit;
     const yearlyRecoveryBenefit = recoveryBenefit * operatingHours * operatingDays;
 
     res.status(200).json({ currentCost, yearlyCost, recoveryBenefit, yearlyRecoveryBenefit });
@@ -73,6 +79,7 @@ app.post("/api/realtime", async (req, res) => {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
+
 
 
 
