@@ -72,17 +72,18 @@ app.post("/api/realtime", async (req, res) => {
 
     const latestData = items[0];
 
+    const tempC1 = latestData.tempC1;
+    const tempC2 = latestData.tempC2;
     const tempC3 = latestData.tempC3;
     const tempC4 = latestData.tempC4;
-    const tempC2 = latestData.tempC2;
 
     // ✅ 各温度差を使用した熱量計算
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC3, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC3, flow);
 
     // ✅ コスト計算（kWh or kg/h ベース）
-    const { cost: currentCost, fuelConsumption: fuelCurrent } = calculateCost(energyCurrent_kJ, flow, costType, costUnit);
-    const { cost: recoveryBenefit, fuelConsumption: fuelRecovery } = calculateCost(energyRecovery_kJ, flow, costType, costUnit);
+    const { cost: currentCost } = calculateCost(energyCurrent_kJ, flow, costType, costUnit);
+    const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, flow, costType, costUnit);
 
     // ✅ 年間コスト計算
     const yearlyCost = currentCost * operatingHours * operatingDays;
@@ -93,10 +94,7 @@ app.post("/api/realtime", async (req, res) => {
       yearlyCost,
       recoveryBenefit,
       yearlyRecoveryBenefit,
-      fuelConsumption: {
-        current: fuelCurrent, // 現状の燃料消費量 (kg/h)
-        recovery: fuelRecovery // 排熱回収後の燃料消費量 (kg/h)
-      }
+      temperature: { tempC1, tempC2, tempC3, tempC4 }, // ✅ 追加
     });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
