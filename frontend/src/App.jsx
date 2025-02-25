@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 const backendUrl = "https://sdsensor-hainetsukaishu-demo0-backend.onrender.com";
@@ -29,22 +29,23 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
-      <h1 className="text-2xl font-bold text-center mb-4">排熱回収システム</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
 
-      <div className="flex flex-col items-center mb-6">
-        <label className="mb-2">Flow1 の値を入力 (L/min):</label>
+      {/* 入力フォーム */}
+      <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center w-full max-w-lg mb-6">
+        <label className="mb-2 font-semibold">Flow1 の値を入力 (L/min):</label>
         <input
           type="number"
           value={flow1}
           onChange={(e) => setFlow1(Number(e.target.value))}
-          className="border border-gray-400 p-2 rounded mb-2"
+          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
         />
 
-        <label className="mb-2">コスト種類を選択:</label>
+        <label className="mb-2 font-semibold">コスト種類を選択:</label>
         <select
           value={costType}
           onChange={(e) => setCostType(e.target.value)}
-          className="border border-gray-400 p-2 rounded mb-2"
+          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
         >
           <option value="電気代">電気代</option>
           <option value="プロパンガス">プロパンガス</option>
@@ -53,19 +54,20 @@ const App = () => {
           <option value="ガス(13A)代">ガス(13A)代</option>
         </select>
 
-        <label className="mb-2">コスト単価を入力 (円/kWh):</label>
+        <label className="mb-2 font-semibold">コスト単価を入力 (円/kWh):</label>
         <input
           type="number"
           value={costUnit}
           onChange={(e) => setCostUnit(Number(e.target.value))}
-          className="border border-gray-400 p-2 rounded mb-4"
+          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
         />
 
-        <button onClick={fetchRealTimeData} className="bg-blue-500 text-white p-2 rounded">
+        <button onClick={fetchRealTimeData} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
         </button>
       </div>
 
+      {/* 計算結果の表示 */}
       {realTimeData ? (
         <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
           {/* 現状のコスト */}
@@ -93,7 +95,7 @@ const App = () => {
           </div>
         </div>
       ) : (
-        <p className="text-center">データなし (null)</p>
+        <p className="text-center text-red-500 mt-4">{error || "データなし (null)"}</p>
       )}
     </div>
   );
