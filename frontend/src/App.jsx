@@ -123,6 +123,26 @@ const App = () => {
           />
         </div>
 
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
+          <input
+            type="number"
+            value={operatingHours || ""}
+            onChange={(e) => setOperatingHours(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
+          <input
+            type="number"
+            value={operatingDays || ""}
+            onChange={(e) => setOperatingDays(e.target.value === "" ? 0 : parseFloat(e.target.value))}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
         <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
         </button>
