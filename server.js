@@ -30,75 +30,81 @@ function calculateCost(energy_kJ, selectedCost) {
   return selectedCost ? (kWh * selectedCost).toFixed(2) : "0.00";
 }
 
-// ✅ **リアルタイムデータ取得**
 app.post("/api/realtime", async (req, res) => {
   try {
-    console.log("✅ フロントエンドからのリクエスト:", req.body);
+    console.log("✅ 受信データ: ", req.body);
 
-    const { flow, selectedCostType, selectedCostValue } = req.body;
-    if (!flow || !selectedCostType || !selectedCostValue) {
-      return res.status(400).json({ error: "Flow1, コスト種別, コスト単価が必要です" });
+    const { flow, costType, costUnit } = req.body;
+
+    // 必須データがあるかチェック
+    if (!flow || !costType || !costUnit) {
+      console.error("❌ 必須データが不足: flow, costType, costUnit");
+      return res.status(400).json({ error: "flow, costType, costUnit の値が必要です" });
     }
 
-    console.log("✅ 受信した Flow1:", flow);
-    console.log("✅ 選択したコスト種別:", selectedCostType);
-    console.log("✅ 選択したコスト単価:", selectedCostValue);
-
+    // Azure から最新の温度データを取得
     const database = client.database(databaseId);
     const container = database.container(containerId);
-
     const querySpec = {
       query: `SELECT TOP 1 * FROM c WHERE c.device = @deviceId ORDER BY c.time DESC`,
       parameters: [{ name: "@deviceId", value: DEVICE_ID }],
     };
-
     const { resources: items } = await container.items.query(querySpec).fetchAll();
+
     if (items.length === 0) {
-      return res.status(404).json({ error: "No data found" });
+      console.error("❌ Azure からのデータ取得失敗");
+      return res.status(500).json({ error: "Azure からデータを取得できませんでした" });
     }
 
     const latestData = items[0];
 
-    const temperatureData = {
-      supply1: latestData.tempC1,
-      supply2: latestData.tempC2,
-      discharge1: latestData.tempC3,
-      discharge2: latestData.tempC4,
-    };
+    // 温度データ
+    const tempC1 = latestData.tempC1;
+    const tempC2 = latestData.tempC2;
+    const tempC3 = latestData.tempC3;
+    const tempC4 = latestData.tempC4;
 
-    // ✅ **現状の熱量計算（tempC4 - tempC3）**
-    const tempDiffCurrent = latestData.tempC4 - latestData.tempC3;
-    const energyCurrent = calculateEnergy(tempDiffCurrent, flow);
-    const costCurrent = calculateCost(energyCurrent, selectedCostValue);
-    const yearlyCostCurrent = (costCurrent * 8 * 365).toFixed(2); // 8時間 × 365日
+    console.log(`🌡 取得した温度データ: tempC1=${tempC1}, tempC2=${tempC2}, tempC3=${tempC3}, tempC4=${tempC4}`);
 
-    // ✅ **排熱回収装置の熱量計算（tempC2 - tempC3）**
-    const tempDiffRecovery = latestData.tempC2 - latestData.tempC3;
-    const energyRecovery = calculateEnergy(tempDiffRecovery, flow);
-    const costRecovery = calculateCost(energyRecovery, selectedCostValue);
-    const yearlyCostRecovery = (costRecovery * 8 * 365).toFixed(2); // 8時間 × 365日
+    // 熱量計算
+    const specificHeat = 4.186; // 水の比熱 (kJ/kg・℃)
+    const density = 1000; // 水の密度 (kg/m³)
+    const flowRate = flow / 60; // L/min → m³/s
 
+    // 現状の熱量
+    const energyCurrent = (tempC4 - tempC3) * flowRate * density * specificHeat; // kJ/s
+
+    // 排熱回収メリット
+    const energyRecovery = (tempC2 - tempC3) * flowRate * density * specificHeat; // kJ/s
+
+    console.log(`🔥 計算した熱量: 現状=${energyCurrent.toFixed(2)} kJ/s, 排熱回収=${energyRecovery.toFixed(2)} kJ/s`);
+
+    // 料金計算
+    const kWhCurrent = energyCurrent / 3600; // kJ/s → kWh
+    const kWhRecovery = energyRecovery / 3600; // kJ/s → kWh
+
+    const currentCost = kWhCurrent * costUnit;
+    const yearlyCost = currentCost * 8 * 365; // 8時間運用で年間コスト
+
+    const recoveryBenefit = kWhRecovery * costUnit;
+    const yearlyRecoveryBenefit = recoveryBenefit * 8 * 365;
+
+    console.log(`💰 計算結果: 現状=${currentCost.toFixed(2)} 円/h, 年間=${yearlyCost.toFixed(2)} 円/年, 回収メリット=${recoveryBenefit.toFixed(2)} 円/h, 年間メリット=${yearlyRecoveryBenefit.toFixed(2)} 円/年`);
+
+    // レスポンスを返す
     res.status(200).json({
-      flowReceived: flow,
-      selectedCostType,
-      selectedCostValue,
-      temperature: temperatureData,
-      energy: {
-        current: energyCurrent.toFixed(2),
-        recovery: energyRecovery.toFixed(2),
-      },
-      cost: {
-        current: costCurrent,
-        yearlyCurrent: yearlyCostCurrent,
-        recovery: costRecovery,
-        yearlyRecovery: yearlyCostRecovery,
-      },
+      currentCost: currentCost.toFixed(2),
+      yearlyCost: yearlyCost.toFixed(2),
+      recoveryBenefit: recoveryBenefit.toFixed(2),
+      yearlyRecoveryBenefit: yearlyRecoveryBenefit.toFixed(2),
     });
+
   } catch (error) {
-    console.error("❌ サーバーエラー:", error);
+    console.error("❌ エラー発生: ", error);
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
