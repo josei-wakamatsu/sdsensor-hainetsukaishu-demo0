@@ -20,7 +20,7 @@ const App = () => {
     tempC4: "排水2",
   };
 
-  // **リアルタイムデータを取得**
+  // ✅ リアルタイムデータを定期取得（常に表示）
   useEffect(() => {
     const fetchRealTimeData = async () => {
       try {
@@ -38,7 +38,7 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // **計算リクエスト**
+  // ✅ 計算リクエストを送信
   const fetchCalculation = async () => {
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
@@ -74,24 +74,26 @@ const App = () => {
         )}
       </div>
 
-      {/* ✅ 入力フォーム (横1列) */}
+      {/* ✅ 入力フォーム (横1列に並べる) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-row items-center w-full max-w-6xl mb-6 space-x-4">
-        <div className="flex flex-col items-center">
+        {/* Flow1 入力 */}
+        <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">Flow1 (L/min)</label>
           <input
             type="number"
             value={flow1}
             onChange={(e) => setFlow1(Number(e.target.value) || 0)}
-            className="border border-gray-400 p-2 rounded w-40 text-center"
+            className="border border-gray-400 p-2 rounded w-full text-center"
           />
         </div>
 
-        <div className="flex flex-col items-center">
+        {/* コスト種類選択 */}
+        <div className="flex flex-col items-center w-40">
           <label className="mb-2 font-semibold">コスト種類</label>
           <select
             value={costType}
             onChange={(e) => setCostType(e.target.value)}
-            className="border border-gray-400 p-2 rounded w-40 text-center"
+            className="border border-gray-400 p-2 rounded w-full text-center"
           >
             <option value="電気代">電気代</option>
             <option value="プロパンガス">プロパンガス</option>
@@ -101,6 +103,40 @@ const App = () => {
           </select>
         </div>
 
+        {/* コスト単価入力 */}
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">コスト単価 (円/kWh or 円/kg)</label>
+          <input
+            type="number"
+            value={costUnit}
+            onChange={(e) => setCostUnit(Number(e.target.value) || 0)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        {/* 稼働時間入力 */}
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働時間 (h/日)</label>
+          <input
+            type="number"
+            value={operatingHours}
+            onChange={(e) => setOperatingHours(Number(e.target.value) || 0)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        {/* 稼働日数入力 */}
+        <div className="flex flex-col items-center w-40">
+          <label className="mb-2 font-semibold">稼働日数 (日/年)</label>
+          <input
+            type="number"
+            value={operatingDays}
+            onChange={(e) => setOperatingDays(Number(e.target.value) || 0)}
+            className="border border-gray-400 p-2 rounded w-full text-center"
+          />
+        </div>
+
+        {/* 計算ボタン */}
         <button onClick={fetchCalculation} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
         </button>
@@ -117,16 +153,6 @@ const App = () => {
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間コスト</h2>
             <p className="text-xl font-bold">{realTimeData.yearlyCost || 0} 円/年</p>
-          </div>
-
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.recoveryBenefit || 0} 円/h</p>
-          </div>
-
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit || 0} 円/年</p>
           </div>
         </div>
       ) : (
