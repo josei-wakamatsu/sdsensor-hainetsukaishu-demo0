@@ -70,16 +70,24 @@ const App = () => {
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
       <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
 
-      {/* リアルタイム温度データ */}
-      <div className="grid grid-cols-4 gap-6 w-full max-w-6xl mb-6">
-        {realTimeData?.temperature &&
-          Object.entries(realTimeData.temperature).map(([key, value]) => (
-            <div key={key} className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-              <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">{temperatureLabels[key]}</h2>
-              <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
-            </div>
-          ))}
-      </div>
+{/* ✅ リアルタイム温度データ (背景色追加) */}
+<div className="grid grid-cols-4 gap-6 w-full max-w-6xl mb-6">
+  {realTimeData?.temperature &&
+    Object.entries(realTimeData.temperature).map(([key, value]) => {
+      // 給水は青、排水はオレンジ
+      const bgColor = key === "tempC1" || key === "tempC2" ? "bg-blue-200" : "bg-orange-200";
+      
+      return (
+        <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
+          <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
+            {temperatureLabels[key]}
+          </h2>
+          <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
+        </div>
+      );
+    })}
+</div>
+
 
       {/* 入力フォーム (5つ) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
