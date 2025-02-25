@@ -93,35 +93,28 @@ const App = () => {
       {/* 計算結果の表示 */}
       {realTimeData ? (
         <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
+          {/* ✅ 現状のコスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">現状コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.currentCost} 円/h</p>
+            <p className="text-xl font-bold">{realTimeData.currentCost.toFixed(2)} 円/h</p>
           </div>
 
+          {/* ✅ 年間コスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間コスト</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyCost} 円/年</p>
+            <p className="text-xl font-bold">{realTimeData.yearlyCost.toFixed(2)} 円/年</p>
           </div>
 
+          {/* ✅ 排熱回収装置によるコストメリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.recoveryBenefit} 円/h</p>
+            <p className="text-xl font-bold">{realTimeData.recoveryBenefit.toFixed(2)} 円/h</p>
           </div>
 
+          {/* ✅ 年間排熱回収メリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間排熱回収メリット</h2>
-            <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit} 円/年</p>
-          </div>
-
-          {/* ✅ 燃料消費量の表示 */}
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">燃料消費量 (kg/h)</h2>
-            <p className="text-xl font-bold">{realTimeData.fuelConsumption.current} kg/h</p>
-          </div>
-
-          <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">排熱回収後の燃料消費量 (kg/h)</h2>
-            <p className="text-xl font-bold">{realTimeData.fuelConsumption.recovery} kg/h</p>
+            <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit.toFixed(2)} 円/年</p>
           </div>
         </div>
       ) : (
