@@ -7,6 +7,8 @@ const App = () => {
   const [flow1, setFlow1] = useState(10);
   const [costType, setCostType] = useState("プロパンガス");
   const [costUnit, setCostUnit] = useState(30);
+  const [operatingHours, setOperatingHours] = useState(8);
+  const [operatingDays, setOperatingDays] = useState(365);
   const [realTimeData, setRealTimeData] = useState(null);
   const [error, setError] = useState(null);
 
@@ -16,6 +18,8 @@ const App = () => {
         flow: flow1,
         costType,
         costUnit,
+        operatingHours,
+        operatingDays,
       });
       console.log("サーバーからのレスポンス:", response.data);
       setRealTimeData(response.data);
@@ -62,6 +66,22 @@ const App = () => {
           className="border border-gray-400 p-2 rounded w-full text-center mb-4"
         />
 
+        <label className="mb-2 font-semibold">稼働時間 (時間/日):</label>
+        <input
+          type="number"
+          value={operatingHours}
+          onChange={(e) => setOperatingHours(Number(e.target.value))}
+          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
+        />
+
+        <label className="mb-2 font-semibold">稼働日数 (日/年):</label>
+        <input
+          type="number"
+          value={operatingDays}
+          onChange={(e) => setOperatingDays(Number(e.target.value))}
+          className="border border-gray-400 p-2 rounded w-full text-center mb-4"
+        />
+
         <button onClick={fetchRealTimeData} className="bg-blue-500 text-white py-2 px-6 rounded-md shadow-md">
           計算
         </button>
@@ -70,25 +90,21 @@ const App = () => {
       {/* 計算結果の表示 */}
       {realTimeData ? (
         <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
-          {/* 現状のコスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">現状コスト</h2>
             <p className="text-xl font-bold">{realTimeData.currentCost} 円/h</p>
           </div>
 
-          {/* 年間コスト */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間コスト</h2>
             <p className="text-xl font-bold">{realTimeData.yearlyCost} 円/年</p>
           </div>
 
-          {/* 排熱回収装置のコストメリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">排熱回収メリット</h2>
             <p className="text-xl font-bold">{realTimeData.recoveryBenefit} 円/h</p>
           </div>
 
-          {/* 年間排熱回収メリット */}
           <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-col items-center">
             <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">年間排熱回収メリット</h2>
             <p className="text-xl font-bold">{realTimeData.yearlyRecoveryBenefit} 円/年</p>
