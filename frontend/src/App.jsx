@@ -110,11 +110,11 @@ const App = () => {
       onChange={(e) => setCostType(e.target.value)}
       className="border border-gray-400 p-2 rounded w-full text-center"
     >
-      <option value="電気代">電気代</option>
+      <option value="電気">電気</option>
       <option value="プロパンガス">プロパンガス</option>
-      <option value="灯油代">灯油代</option>
-      <option value="重油代">重油代</option>
-      <option value="ガス(13A)代">ガス(13A)代</option>
+      <option value="灯油">灯油</option>
+      <option value="重油">重油</option>
+      <option value="ガス(13A)">ガス(13A)</option>
     </select>
   </div>
 
