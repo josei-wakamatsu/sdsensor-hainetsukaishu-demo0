@@ -80,13 +80,11 @@ app.get("/api/realtime", async (req, res) => {
   }
 });
 
-// **計算エンドポイント (Flow1 を Azure から取得)**
 app.post("/api/calculate", async (req, res) => {
   try {
-    console.log("✅ 受信データ: ", req.body);
-
     const { costType, costUnit, operatingHours, operatingDays } = req.body;
 
+    // ✅ ここで最新の Flow1 を取得
     const database = client.database(databaseId);
     const container = database.container(containerId);
     const querySpec = {
@@ -94,31 +92,43 @@ app.post("/api/calculate", async (req, res) => {
       parameters: [{ name: "@deviceId", value: DEVICE_ID }],
     };
     const { resources: items } = await container.items.query(querySpec).fetchAll();
-
+    
     if (items.length === 0) {
       return res.status(500).json({ error: "Azure からデータを取得できませんでした" });
     }
-
+    
     const latestData = items[0];
-    const flow = latestData.Flow1; // ✅ Azure から Flow1 を取得
+    const flow = latestData.Flow1;
+    
+    console.log("計算に使用する Flow1:", flow); // ✅ Flow1 の確認
 
-    const tempC1 = latestData.tempC1;
-    const tempC2 = latestData.tempC2;
-    const tempC3 = latestData.tempC3;
-    const tempC4 = latestData.tempC4;
+    // 温度差計算
+    const tempDiff = latestData.tempC2 - latestData.tempC3;
+    
+    // 熱量計算 (kJ)
+    const energy = tempDiff * flow * 1000 * 4.186;
+    
+    // kJ → kWh 変換
+    const energy_kWh = energy / 3600;
 
-    const energyCurrent_kJ = calculateEnergy(tempC4 - tempC1, flow);
-    const energyRecovery_kJ = calculateEnergy(tempC2 - tempC1, flow);
+    // コスト計算
+    const currentCost = (energy_kWh * costUnit).toFixed(2);
+    const yearlyCost = (currentCost * operatingHours * operatingDays).toFixed(2);
+    const recoveryBenefit = (currentCost * 0.8).toFixed(2);
+    const yearlyRecoveryBenefit = (yearlyCost * 0.8).toFixed(2);
 
-    res.status(200).json({ 
-      energyCurrent_kJ, 
-      energyRecovery_kJ, 
-      flow // ✅ Flow1 もレスポンスに含める
+    res.status(200).json({
+      currentCost,
+      yearlyCost,
+      recoveryBenefit,
+      yearlyRecoveryBenefit,
     });
   } catch (error) {
-    res.status(500).json({ error: "サーバーエラーが発生しました" });
+    console.error("計算エラー:", error);
+    res.status(500).json({ error: "計算に失敗しました" });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
