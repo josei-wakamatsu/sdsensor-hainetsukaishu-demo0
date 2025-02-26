@@ -79,16 +79,12 @@ app.get("/api/realtime", async (req, res) => {
   }
 });
 
-// **計算エンドポイント**
+// **計算エンドポイント (フロントエンドの Flow1 を削除)**
 app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
 
-    const { flow, costType, costUnit, operatingHours, operatingDays } = req.body;
-
-    if (!flow || !costType || !costUnit || !operatingHours || !operatingDays) {
-      return res.status(400).json({ error: "すべてのパラメータが必要です" });
-    }
+    const { costType, costUnit, operatingHours, operatingDays } = req.body;
 
     const database = client.database(databaseId);
     const container = database.container(containerId);
@@ -103,6 +99,7 @@ app.post("/api/calculate", async (req, res) => {
     }
 
     const latestData = items[0];
+    const flow = latestData.Flow1; // ✅ Azure から Flow1 を取得
 
     const tempC1 = latestData.tempC1;
     const tempC2 = latestData.tempC2;
@@ -112,22 +109,12 @@ app.post("/api/calculate", async (req, res) => {
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC1, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC1, flow);
 
-    const { cost: currentCost } = calculateCost(energyCurrent_kJ, costType, costUnit);
-    const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, costType, costUnit);
-
-    const yearlyCost = (currentCost * operatingHours * operatingDays).toFixed(2);
-    const yearlyRecoveryBenefit = (recoveryBenefit * operatingHours * operatingDays).toFixed(2);
-
-    res.status(200).json({
-      currentCost,
-      yearlyCost,
-      recoveryBenefit,
-      yearlyRecoveryBenefit,
-    });
+    res.status(200).json({ energyCurrent_kJ, energyRecovery_kJ });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
