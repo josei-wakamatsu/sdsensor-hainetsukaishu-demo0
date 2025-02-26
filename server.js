@@ -109,8 +109,8 @@ app.post("/api/calculate", async (req, res) => {
     const tempC3 = latestData.tempC3;
     const tempC4 = latestData.tempC4;
 
-    const energyCurrent_kJ = calculateEnergy(tempC4 - tempC3, flow);
-    const energyRecovery_kJ = calculateEnergy(tempC2 - tempC3, flow);
+    const energyCurrent_kJ = calculateEnergy(tempC1 - tempC3, flow);
+    const energyRecovery_kJ = calculateEnergy(tempC4 - tempC3, flow);
 
     const { cost: currentCost } = calculateCost(energyCurrent_kJ, costType, costUnit);
     const { cost: recoveryBenefit } = calculateCost(energyRecovery_kJ, costType, costUnit);

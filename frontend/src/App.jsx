@@ -14,10 +14,10 @@ const App = () => {
   const [error, setError] = useState(null);
 
   const temperatureLabels = {
-    tempC1: "給水IN",
-    tempC2: "給水OUT",
-    tempC3: "排水IN",
-    tempC4: "排水OUT",
+    tempC3: "給水IN",
+    tempC4: "給水OUT",
+    tempC1: "排水IN",
+    tempC2: "排水OUT",
   };
 
   const costUnitLabel = costType === "電気" ? "円/kWh" : "円/kg";
