@@ -64,7 +64,7 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
-      <h1 className="text-2xl font-bold text-center mb-6">排熱回収システム</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">排熱回収装置</h1>
 
       {/* ✅ リアルタイム温度データ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
