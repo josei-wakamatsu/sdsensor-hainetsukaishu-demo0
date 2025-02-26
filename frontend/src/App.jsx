@@ -14,10 +14,10 @@ const App = () => {
   const [error, setError] = useState(null);
 
   const temperatureLabels = {
-    tempC3: "給水IN",
-    tempC4: "給水OUT",
-    tempC1: "排水IN",
-    tempC2: "排水OUT",
+    tempC1: "給水IN",
+    tempC2: "給水OUT",
+    tempC4: "排水IN",
+    tempC3: "排水OUT",
   };
   
 
@@ -71,9 +71,9 @@ const App = () => {
 
  {/* ✅ リアルタイム温度データ */}
 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
-  {["tempC3", "tempC4", "tempC1", "tempC2"].map((key) => {
+  {["tempC1", "tempC2", "tempC4", "tempC3"].map((key) => {
     const value = realTimeData?.temperature?.[key]; // 指定順に値を取得
-    const bgColor = key.includes("tempC3") || key.includes("tempC4") ? "bg-blue-200" : "bg-orange-200"; // 給水=青、排水=オレンジ
+    const bgColor = key.includes("tempC1") || key.includes("tempC2") ? "bg-blue-200" : "bg-orange-200"; // 給水=青、排水=オレンジ
 
     return (
       <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
