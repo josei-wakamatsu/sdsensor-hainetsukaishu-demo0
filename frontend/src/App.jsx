@@ -20,24 +20,7 @@ const App = () => {
     tempC2: "排水OUT",
   };
   
-  // ✅ 指定順で温度データを表示するように修正
-  const temperatureOrder = ["tempC3", "tempC4", "tempC1", "tempC2"]; // この順番で表示
-  
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
-    {temperatureOrder.map((key) => {
-      const value = realTimeData?.temperature?.[key]; // キーが存在する場合のみ取得
-      const bgColor = key.includes("tempC3") || key.includes("tempC4") ? "bg-blue-200" : "bg-orange-200";
-      
-      return (
-        <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
-          <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
-            {temperatureLabels[key]}
-          </h2>
-          <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
-        </div>
-      );
-    })}
-  </div>
+
   
 
   const costUnitLabel = costType === "電気" ? "円/kWh" : "円/kg";
@@ -86,21 +69,23 @@ const App = () => {
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
       <h1 className="text-2xl font-bold text-center mb-6">排熱回収装置</h1>
 
-      {/* ✅ リアルタイム温度データ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
-        {realTimeData?.temperature &&
-          Object.entries(realTimeData.temperature).map(([key, value]) => {
-            const bgColor = key.includes("tempC1") || key.includes("tempC2") ? "bg-blue-200" : "bg-orange-200";
-            return (
-              <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
-                <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
-                  {temperatureLabels[key]}
-                </h2>
-                <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
-              </div>
-            );
-          })}
+ {/* ✅ リアルタイム温度データ */}
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
+  {["tempC3", "tempC4", "tempC1", "tempC2"].map((key) => {
+    const value = realTimeData?.temperature?.[key]; // 指定順に値を取得
+    const bgColor = key.includes("tempC3") || key.includes("tempC4") ? "bg-blue-200" : "bg-orange-200"; // 給水=青、排水=オレンジ
+
+    return (
+      <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
+        <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
+          {temperatureLabels[key] ?? key}
+        </h2>
+        <p className="text-xl font-bold">{value !== undefined ? `${value.toFixed(2)} °C` : "データなし"}</p>
       </div>
+    );
+  })}
+</div>
+
 
       {/* ✅ 入力フォーム (レスポンシブ対応) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-6xl mb-6">
