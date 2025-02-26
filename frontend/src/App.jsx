@@ -19,6 +19,26 @@ const App = () => {
     tempC1: "排水IN",
     tempC2: "排水OUT",
   };
+  
+  // ✅ 指定順で温度データを表示するように修正
+  const temperatureOrder = ["tempC3", "tempC4", "tempC1", "tempC2"]; // この順番で表示
+  
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-6xl mb-6">
+    {temperatureOrder.map((key) => {
+      const value = realTimeData?.temperature?.[key]; // キーが存在する場合のみ取得
+      const bgColor = key.includes("tempC3") || key.includes("tempC4") ? "bg-blue-200" : "bg-orange-200";
+      
+      return (
+        <div key={key} className={`p-6 rounded-lg shadow-md flex flex-col items-center ${bgColor}`}>
+          <h2 className="text-lg font-semibold text-gray-800 text-center mb-2">
+            {temperatureLabels[key]}
+          </h2>
+          <p className="text-xl font-bold">{value ? `${value.toFixed(2)} °C` : "データなし"}</p>
+        </div>
+      );
+    })}
+  </div>
+  
 
   const costUnitLabel = costType === "電気" ? "円/kWh" : "円/kg";
 
