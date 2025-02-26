@@ -43,13 +43,13 @@ function calculateCost(energy_kJ, costType, costUnit) {
     cost = fuelConsumption * costUnit;
   } else {
     console.error("無効なコストタイプ: ", costType);
-    return { cost: 0 }; // NaN を回避
+    return { cost: 0 };
   }
 
   return { cost: cost.toFixed(2) };
 }
 
-// **リアルタイムデータ取得**
+// **リアルタイムデータ取得 (Flow1 を含める)**
 app.get("/api/realtime", async (req, res) => {
   try {
     const database = client.database(databaseId);
@@ -73,13 +73,14 @@ app.get("/api/realtime", async (req, res) => {
         tempC3: latestData.tempC3,
         tempC4: latestData.tempC4,
       },
+      flow: latestData.Flow1, // ✅ Flow1 をレスポンスに追加
     });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
 
-// **計算エンドポイント (フロントエンドの Flow1 を削除)**
+// **計算エンドポイント (Flow1 を Azure から取得)**
 app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
@@ -109,12 +110,15 @@ app.post("/api/calculate", async (req, res) => {
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC1, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC1, flow);
 
-    res.status(200).json({ energyCurrent_kJ, energyRecovery_kJ });
+    res.status(200).json({ 
+      energyCurrent_kJ, 
+      energyRecovery_kJ, 
+      flow // ✅ Flow1 もレスポンスに含める
+    });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
