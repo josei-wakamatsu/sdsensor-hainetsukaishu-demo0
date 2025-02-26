@@ -89,7 +89,7 @@ const App = () => {
       {/* ✅ 入力フォーム (5つ) */}
       <div className="bg-gray-100 p-6 rounded-lg shadow-md flex flex-wrap justify-center items-center w-full max-w-6xl mb-6 gap-4">
         <div className="flex flex-col items-center w-40">
-          <label className="mb-2 font-semibold">Flow1 (L/min)</label>
+          <label className="mb-2 font-semibold">流量 (L/min)</label>
           <input
             type="number"
             value={flow1 || ""}
