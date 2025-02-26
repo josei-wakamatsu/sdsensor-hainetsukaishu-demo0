@@ -17,41 +17,40 @@ app.use(express.json());
 
 const DEVICE_ID = "hainetsukaishu-demo0";
 
+// ✅ 燃料の発熱量 (kJ/kg)
+const fuelEnergyDensity = {
+  "プロパンガス": 50.3 * 1000, // kJ/kg
+  "灯油": 36.4 * 1000, // kJ/kg
+  "重油": 39.6 * 1000, // kJ/kg
+  "ガス(13A)": 45.8 * 1000, // kJ/kg
+};
 
-
-// ✅ **熱量計算関数**
+// ✅ 熱量計算関数
 function calculateEnergy(tempDiff, flow) {
   const specificHeat = 4.186; // 水の比熱 (kJ/kg・℃)
-  const density = 1000; // 水の密度 (kg/m³)
-  return tempDiff * flow * density * specificHeat; // kJ
+  const density = 1; // 水の密度 (kg/L)
+  return tempDiff * flow * density * specificHeat; // kJ/min
 }
 
-// **コスト計算関数**
+// ✅ コスト計算関数
 function calculateCost(energy_kJ, costType, costUnit) {
-  const energy_kWh = energy_kJ / 3600; // kJ → kWh 変換
+  const energy_kWh = energy_kJ / 3600; // kJ → kWh
   let cost = 0;
-
-  const fuelEnergyDensity = {
-    "プロパンガス": 50.3,
-    "灯油": 36.4,
-    "重油": 39.6,
-    "ガス(13A)": 45.8,
-  };
 
   if (costType === "電気") {
     cost = energy_kWh * costUnit;
   } else if (fuelEnergyDensity[costType]) {
-    const fuelConsumption = energy_kJ / (fuelEnergyDensity[costType] * 1000);
+    const fuelConsumption = energy_kJ / fuelEnergyDensity[costType]; // kg/min
     cost = fuelConsumption * costUnit;
   } else {
     console.error("無効なコストタイプ: ", costType);
-    return { cost: 0 }; // NaN を回避
+    return { cost: 0 };
   }
 
   return { cost: cost.toFixed(2) };
 }
 
-// **リアルタイムデータ取得**
+// ✅ **リアルタイムデータ取得**
 app.get("/api/realtime", async (req, res) => {
   try {
     const database = client.database(databaseId);
@@ -75,13 +74,14 @@ app.get("/api/realtime", async (req, res) => {
         tempC3: latestData.tempC3,
         tempC4: latestData.tempC4,
       },
+      flow: latestData.Flow1, // ✅ Flow1 を追加
     });
   } catch (error) {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
 
-// **計算エンドポイント (フロントエンドの Flow1 を削除)**
+// ✅ **計算エンドポイント**
 app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
@@ -114,22 +114,16 @@ app.post("/api/calculate", async (req, res) => {
 
     console.log("✅ 取得した温度データ: ", { tempC1, tempC2, tempC3, tempC4 });
 
-    // ✅ 熱量計算 (kJ)
+    // ✅ 熱量計算 (kJ/min)
     const energyCurrent_kJ = calculateEnergy(tempC4 - tempC1, flow);
     const energyRecovery_kJ = calculateEnergy(tempC2 - tempC1, flow);
 
-    console.log("✅ 計算結果 (エネルギー): ", { energyCurrent_kJ, energyRecovery_kJ });
-
-    // kJ → kWh 変換
-    const energyCurrent_kWh = energyCurrent_kJ / 3600;
-    const energyRecovery_kWh = energyRecovery_kJ / 3600;
-
-    console.log("✅ kWh 変換後: ", { energyCurrent_kWh, energyRecovery_kWh });
+    console.log("✅ 計算結果 (エネルギー kJ): ", { energyCurrent_kJ, energyRecovery_kJ });
 
     // ✅ コスト計算
-    const currentCost = (energyCurrent_kWh * costUnit).toFixed(2);
+    const currentCost = calculateCost(energyCurrent_kJ, costType, costUnit).cost;
     const yearlyCost = (currentCost * operatingHours * operatingDays).toFixed(2);
-    const recoveryBenefit = (energyRecovery_kWh * costUnit).toFixed(2);
+    const recoveryBenefit = calculateCost(energyRecovery_kJ, costType, costUnit).cost;
     const yearlyRecoveryBenefit = (recoveryBenefit * operatingHours * operatingDays).toFixed(2);
 
     console.log("✅ 計算結果 (コスト): ", { currentCost, yearlyCost, recoveryBenefit, yearlyRecoveryBenefit });
@@ -146,10 +140,7 @@ app.post("/api/calculate", async (req, res) => {
   }
 });
 
-
-
-
-
+// ✅ サーバー起動
 app.listen(PORT, () => {
   console.log(`✅ サーバー起動: http://localhost:${PORT}`);
 });
