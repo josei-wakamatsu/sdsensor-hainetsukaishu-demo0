@@ -43,9 +43,10 @@ const App = () => {
       setError("リアルタイムデータが取得できていません");
       return;
     }
-
+  
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
+        flow: realTimeData.flow, // ✅ Flow1を追加
         costType,
         costUnit,
         operatingHours,
@@ -58,6 +59,7 @@ const App = () => {
       setError("計算に失敗しました");
     }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-white p-6">
