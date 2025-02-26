@@ -15,14 +15,14 @@ const App = () => {
 
   // 温度データのラベル変換
   const temperatureLabels = {
-    tempC1: "給水1",
-    tempC2: "給水2",
-    tempC3: "排水1",
-    tempC4: "排水2",
+    tempC1: "給水IN",
+    tempC2: "給水OUT",
+    tempC3: "排水IN",
+    tempC4: "排水OUT",
   };
 
   // コスト単価の単位を選択したコストの名前の横に表示
-  const costUnitLabel = costType === "電気代" ? "円/kWh" : "円/kg";
+  const costUnitLabel = costType === "電気" ? "円/kWh" : "円/kg";
 
   // リアルタイムデータを定期取得
   const fetchRealTimeData = async () => {
@@ -105,11 +105,11 @@ const App = () => {
             onChange={(e) => setCostType(e.target.value)}
             className="border border-gray-400 p-2 rounded w-full text-center"
           >
-            <option value="電気代">電気代</option>
+            <option value="電気">電気</option>
             <option value="プロパンガス">プロパンガス</option>
-            <option value="灯油代">灯油代</option>
-            <option value="重油代">重油代</option>
-            <option value="ガス(13A)代">ガス(13A)代</option>
+            <option value="灯油">灯油</option>
+            <option value="重油">重油</option>
+            <option value="ガス(13A)">ガス(13A)</option>
           </select>
         </div>
 

@@ -31,12 +31,12 @@ function calculateCost(energy_kJ, costType, costUnit) {
 
   const fuelEnergyDensity = {
     "プロパンガス": 50.3,
-    "灯油代": 36.4,
-    "重油代": 39.6,
-    "ガス(13A)代": 45.8,
+    "灯油": 36.4,
+    "重油": 39.6,
+    "ガス(13A)": 45.8,
   };
 
-  if (costType === "電気代") {
+  if (costType === "電気") {
     cost = energy_kWh * costUnit;
   } else if (fuelEnergyDensity[costType]) {
     const fuelConsumption = energy_kJ / (fuelEnergyDensity[costType] * 1000);
