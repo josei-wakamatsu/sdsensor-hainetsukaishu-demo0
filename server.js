@@ -23,7 +23,7 @@ function calculateEnergy(tempDiff, flow) {
   const density = 1000; // 水の密度 (kg/m³)
 
   // kJ の計算 (×10^-3 を追加)
-  const energy_kJ = tempDiff * flow * density * specificHeat * 1e-3; 
+  const energy_kJ = tempDiff * flow * density * specificHeat * 1e-6; //1e-6は流量の単位変換と熱量の式の二つの結果
 
   // kJ → kW 変換 (0.278 × 60)
   const energy_kW = energy_kJ * 0.278 * 60;
