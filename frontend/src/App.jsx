@@ -47,7 +47,7 @@ const App = () => {
   
     try {
       const response = await axios.post(`${backendUrl}/api/calculate`, {
-        flow: realTimeData.flow, // ✅ Flow1を追加
+        flow: flow1, // ✅ Flow1を追加
         costType,
         costUnit,
         operatingHours,
