@@ -84,15 +84,14 @@ app.get("/api/realtime", async (req, res) => {
     res.status(500).json({ error: "サーバーエラーが発生しました" });
   }
 });
-
 // **計算エンドポイント**
 app.post("/api/calculate", async (req, res) => {
   try {
     console.log("✅ 受信データ: ", req.body);
 
-    const { costType, costUnit, operatingHours, operatingDays } = req.body;
+    const { flow, costType, costUnit, operatingHours, operatingDays } = req.body; // ✅ Flow1 を受け取る
 
-    // ✅ Azure から Flow1 を取得
+    // ✅ Azure から温度データを取得
     const database = client.database(databaseId);
     const container = database.container(containerId);
     const querySpec = {
@@ -106,11 +105,8 @@ app.post("/api/calculate", async (req, res) => {
     }
 
     const latestData = items[0];
-    const flow = latestData.Flow1; // ✅ Flow1 を取得
 
-    console.log("✅ 取得した Flow1: ", flow);
-
-    // 温度データの取得
+    // ✅ 温度データの取得
     const tempC1 = latestData.tempC1;
     const tempC2 = latestData.tempC2;
     const tempC3 = latestData.tempC3;
@@ -118,21 +114,17 @@ app.post("/api/calculate", async (req, res) => {
 
     console.log("✅ 取得した温度データ: ", { tempC1, tempC2, tempC3, tempC4 });
 
-    // ✅ 熱量計算 (kJ, kW, kg/h)
+    // ✅ 熱量計算 (Flow1 をフロントエンドから取得)
     const energyCurrent = calculateEnergy(tempC4 - tempC1, flow);
     const energyRecovery = calculateEnergy(tempC2 - tempC1, flow);
 
-    console.log("✅ 計算結果 (エネルギー): ", energyCurrent, energyRecovery);
-
-    // ✅ コスト計算 (電気 → kW, その他 → kg/h)
+    // ✅ コスト計算
     const currentCost = calculateCost(energyCurrent, costType, costUnit);
     const recoveryBenefit = calculateCost(energyRecovery, costType, costUnit);
 
     // ✅ 年間コスト計算
     const yearlyCost = (parseFloat(currentCost.cost) * operatingHours * operatingDays).toFixed(2);
     const yearlyRecoveryBenefit = (parseFloat(recoveryBenefit.cost) * operatingHours * operatingDays).toFixed(2);
-
-    console.log("✅ 計算結果 (コスト): ", { currentCost, yearlyCost, recoveryBenefit, yearlyRecoveryBenefit });
 
     res.status(200).json({
       currentCost: currentCost.cost,
